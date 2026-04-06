@@ -1,27 +1,55 @@
 """
 Configuration & Constants for Vedantu Multi-Agent Marketing System
+
+API keys are read via:
+  1. Streamlit Cloud Secrets  (st.secrets)  — production
+  2. Environment variables     (os.getenv)   — local dev (.env file)
+Neither source is committed to version control.
 """
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# ── API Keys ──────────────────────────────────────────────────────────────────
-MUAPI_API_KEY = os.getenv("MUAPI_API_KEY", "")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-# ── Seedance 2.0 API ─────────────────────────────────────────────────────────
-SEEDANCE_BASE_URL = "https://api.muapi.ai/api/v1"
-SEEDANCE_T2V_ENDPOINT = f"{SEEDANCE_BASE_URL}/seedance-v2.0-t2v"
-SEEDANCE_I2V_ENDPOINT = f"{SEEDANCE_BASE_URL}/seedance-v2.0-i2v"
-SEEDANCE_RESULT_ENDPOINT = f"{SEEDANCE_BASE_URL}/predictions"
+# ── Helper: read a secret from Streamlit Cloud first, then env var ────────────
+def _get_secret(key: str, default: str = "") -> str:
+    """Return a secret, checking Streamlit Cloud secrets first, then env."""
+    try:
+        import streamlit as st
+        val = st.secrets.get(key, None)
+        if val:
+            return str(val)
+    except Exception:
+        pass
+    return os.getenv(key, default)
+
+
+# ── API Keys ──────────────────────────────────────────────────────────────────
+# Video generation
+PIAPI_API_KEY = _get_secret("PIAPI_API_KEY")
+
+# Script generation
+GEMINI_API_KEY = _get_secret("GEMINI_API_KEY")
+
+# Platform scraping (official APIs)
+YOUTUBE_API_KEY = _get_secret("YOUTUBE_API_KEY")
+REDDIT_CLIENT_ID = _get_secret("REDDIT_CLIENT_ID")
+REDDIT_CLIENT_SECRET = _get_secret("REDDIT_CLIENT_SECRET")
+INSTAGRAM_ACCESS_TOKEN = _get_secret("INSTAGRAM_ACCESS_TOKEN")
+X_API_BEARER_TOKEN = _get_secret("X_API_BEARER_TOKEN")
+
+# ── PiAPI / Seedance 2.0 ─────────────────────────────────────────────────────
+PIAPI_BASE_URL = "https://api.piapi.ai/api/v1"
+PIAPI_TASK_ENDPOINT = f"{PIAPI_BASE_URL}/task"
+SEEDANCE_MODEL = "seedance-2-fast-preview"
 
 VIDEO_DURATION_DEFAULT = 5
-VIDEO_DURATION_OPTIONS = [5, 10]
+VIDEO_DURATION_OPTIONS = [5, 10, 15]
 VIDEO_ASPECT_RATIO_DEFAULT = "9:16"
-VIDEO_ASPECT_RATIO_OPTIONS = ["9:16", "16:9", "1:1"]
-VIDEO_QUALITY_DEFAULT = "high"
-VIDEO_QUALITY_OPTIONS = ["high", "medium", "low"]
+VIDEO_ASPECT_RATIO_OPTIONS = ["9:16", "16:9", "1:1", "4:3", "3:4"]
+VIDEO_QUALITY_DEFAULT = "fast"
+VIDEO_QUALITY_OPTIONS = ["fast", "standard"]
 POLL_INTERVAL = 10        # seconds between status checks
 MAX_POLL_ATTEMPTS = 60    # ~10 min max wait
 
@@ -61,7 +89,11 @@ VEDANTU_BRAND = {
 SCRAPING_CONFIG = {
     "reddit": {
         "subreddits": ["studytips", "learning", "GetStudying", "Indian_Academia"],
-        "base_url": "https://www.reddit.com/r/{subreddit}/hot.json",
+        # Public JSON fallback URL (used when Reddit OAuth creds are absent)
+        "public_base_url": "https://www.reddit.com/r/{subreddit}/hot.json",
+        # Official OAuth endpoint (used when REDDIT_CLIENT_ID is available)
+        "oauth_base_url": "https://oauth.reddit.com/r/{subreddit}/hot",
+        "token_url": "https://www.reddit.com/api/v1/access_token",
         "limit": 15,
         "headers": {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) VedantuTrendBot/1.0"
@@ -76,11 +108,27 @@ SCRAPING_CONFIG = {
             "online learning hacks",
             "exam anxiety help students",
         ],
+        # Official YouTube Data API v3
+        "api_search_url": "https://www.googleapis.com/youtube/v3/search",
+        "api_videos_url": "https://www.googleapis.com/youtube/v3/videos",
+        # Public fallback (scraping, no API key needed)
         "trending_url": "https://www.youtube.com/feed/trending?bp=4gIKEgJJQhIFCAEYAQ%3D%3D",
     },
     "instagram": {
         "hashtags": ["edtech", "studyhacks", "onlinelearning", "studymotivation", "jee2026", "neet2026"],
-        "base_url": "https://www.instagram.com/explore/tags/{hashtag}/",
+        # Instagram Graph API
+        "graph_api_url": "https://graph.facebook.com/v19.0",
+        # Public fallback
+        "public_base_url": "https://www.instagram.com/explore/tags/{hashtag}/",
+    },
+    "x": {
+        "search_queries": [
+            "edtech India",
+            "online tutoring",
+            "JEE NEET preparation",
+            "study motivation",
+        ],
+        "api_search_url": "https://api.x.com/2/tweets/search/recent",
     },
 }
 

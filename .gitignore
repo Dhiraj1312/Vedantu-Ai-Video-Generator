@@ -28,7 +28,7 @@ artifacts/reference_*
 .DS_Store
 
 # Streamlit
-.streamlit/
+.streamlit/secrets.toml
 
 # Generated assets
 assets/vedantu_logo.png

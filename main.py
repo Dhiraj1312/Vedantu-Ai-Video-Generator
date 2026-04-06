@@ -19,7 +19,7 @@ st.set_page_config(
 
 from agents import AgentOrchestrator
 from config import (
-    VEDANTU_BRAND, ARTIFACTS_DIR, MUAPI_API_KEY, GEMINI_API_KEY,
+    VEDANTU_BRAND, ARTIFACTS_DIR, PIAPI_API_KEY, GEMINI_API_KEY,
     VIDEO_DURATION_OPTIONS, VIDEO_DURATION_DEFAULT,
     VIDEO_ASPECT_RATIO_OPTIONS, VIDEO_ASPECT_RATIO_DEFAULT,
     VIDEO_QUALITY_OPTIONS, VIDEO_QUALITY_DEFAULT,
@@ -650,11 +650,11 @@ def render_env_status():
         st.markdown("### ⚙️ Configuration")
         st.markdown("---")
 
-        if MUAPI_API_KEY:
-            st.success("✅ MUAPI_API_KEY configured")
+        if PIAPI_API_KEY:
+            st.success("✅ PIAPI_API_KEY configured")
         else:
-            st.warning("⚠️ MUAPI_API_KEY not set")
-            st.caption("Set in `.env` file for video generation")
+            st.warning("⚠️ PIAPI_API_KEY not set")
+            st.caption("Set in `.env` file or Streamlit Cloud Secrets for video generation")
 
         if GEMINI_API_KEY:
             st.success("✅ GEMINI_API_KEY configured")
@@ -732,14 +732,14 @@ def main():
         if st.session_state.pipeline_stage == "editing":
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
-                can_generate = bool(MUAPI_API_KEY)
-                btn_label = "🎬 Generate Video" if can_generate else "🎬 Generate Video (Set MUAPI_API_KEY first)"
+                can_generate = bool(PIAPI_API_KEY)
+                btn_label = "🎬 Generate Video" if can_generate else "🎬 Generate Video (Set PIAPI_API_KEY first)"
                 if st.button(btn_label, use_container_width=True, key="generate_video", disabled=not can_generate):
                     run_video_generation()
                     st.rerun()
 
                 if not can_generate:
-                    st.caption("💡 Add your MUAPI_API_KEY to the `.env` file to enable video generation.")
+                    st.caption("💡 Add your PIAPI_API_KEY to `.env` or Streamlit Cloud Secrets to enable video generation.")
 
         # Video Result
         if st.session_state.pipeline_stage == "completed":
