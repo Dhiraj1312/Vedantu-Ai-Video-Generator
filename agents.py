@@ -64,24 +64,24 @@ OUTPUT FORMAT (JSON):
 }}"""
 
     def _build_user_prompt(self, trend_report):
-        top_trends = trend_report.get("trends", [])[:5]
+        top_trends = trend_report.get("trends", [])[:7]
         trends_text = ""
         for t in top_trends:
             trends_text += f"\n  #{t.get('rank', '?')}: {t.get('topic', 'N/A')}"
             trends_text += f"\n     Source: {t.get('source', 'N/A')} | Engagement: {t.get('engagement', 'N/A')}"
             trends_text += f"\n     Pain Point: {t.get('pain_point', 'N/A')}\n"
 
-        return f"""Based on the following trending educational topics, create 3 DIFFERENT promotional video scripts for Vedantu.
+        return f"""Based on the following trending educational topics, create 5 DIFFERENT promotional video scripts for Vedantu.
 
-Each script should target a different trend from the list. Pick the 3 most compelling trends.
+Each script should target a different trend from the list. Pick the 5 most compelling trends.
 
 TRENDING TOPICS:
 {trends_text}
 
-Generate exactly 3 scripts. Return a JSON array of 3 script objects."""
+Generate exactly 5 scripts. Return a JSON array of 5 script objects."""
 
     def run(self, trend_report):
-        """Generate 3 script variants from the trend report."""
+        """Generate 5 script variants from the trend report."""
         self._update_status("🚀 Agent 2 (Creative Director) starting script generation...")
 
         # Try Google Gemini first
@@ -101,16 +101,16 @@ Generate exactly 3 scripts. Return a JSON array of 3 script objects."""
                 self._build_system_prompt()
                 + "\n\n---\n\n"
                 + self._build_user_prompt(trend_report)
-                + "\n\nIMPORTANT: Return ONLY valid JSON. Wrap the 3 scripts in a JSON object like {\"scripts\": [...]}"
+                + "\n\nIMPORTANT: Return ONLY valid JSON. Wrap the 5 scripts in a JSON object like {\"scripts\": [...]}"
             )
 
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash-lite",
                 contents=combined_prompt,
                 config={
                     "response_mime_type": "application/json",
                     "temperature": 0.8,
-                    "max_output_tokens": 2000,
+                    "max_output_tokens": 3500,
                 },
             )
 
@@ -125,8 +125,8 @@ Generate exactly 3 scripts. Return a JSON array of 3 script objects."""
             else:
                 scripts = [result]
 
-            # Ensure we have at least 1, at most 3
-            scripts = scripts[:3] if len(scripts) > 3 else scripts
+            # Ensure we have at least 1, at most 5
+            scripts = scripts[:5] if len(scripts) > 5 else scripts
 
             self._save_scripts(scripts)
             self._update_status(f"✅ Agent 2 complete! Generated {len(scripts)} script variants.")
@@ -168,9 +168,25 @@ Generate exactly 3 scripts. Return a JSON array of 3 script objects."""
                 "full_script": "JEE/NEET prep costs 2+ lakhs at coaching centers. But what if it didn't have to? Vedantu gives you LIVE classes from IIT/AIIMS alumni, unlimited doubt sessions, and AI-powered test analysis — all from your home. 10 million students already made the switch. Book your FREE demo class on Vedantu NOW!",
                 "target_trend": trends[2]["topic"] if len(trends) > 2 else "Affordable education",
             },
+            {
+                "hook": "Your teacher just explained it 3 times… and you STILL don't get it? 😩",
+                "body": "Vedantu's 1-on-1 LIVE tutoring connects you with India's best teachers who adapt to YOUR pace. Ask unlimited doubts, get instant answers, and finally understand — not just memorize.",
+                "cta": "Get your first 1-on-1 session FREE on Vedantu! 🎯",
+                "visual_direction": "Frustrated student in classroom → calm, focused student on Vedantu 1-on-1 call. Warm lighting, close-up reactions.",
+                "full_script": "Your teacher just explained it 3 times and you still don't get it? Vedantu's 1-on-1 LIVE tutoring connects you with India's best teachers who adapt to YOUR pace. Ask unlimited doubts, get instant answers, and finally understand — not just memorize. Get your first 1-on-1 session FREE on Vedantu!",
+                "target_trend": trends[3]["topic"] if len(trends) > 3 else "Personalized tutoring",
+            },
+            {
+                "hook": "What if studying felt like playing a game? 🎮",
+                "body": "Vedantu turns boring chapters into interactive challenges — earn coins, climb leaderboards, and compete with friends while mastering Physics, Chemistry, and Math. Learning has never been this addictive.",
+                "cta": "Join 10M+ students on Vedantu — Start for FREE! 🏆",
+                "visual_direction": "Game-style UI transitions: XP bars filling up, leaderboard animations, student celebrating. Bright neon colors, fast beats.",
+                "full_script": "What if studying felt like playing a game? Vedantu turns boring chapters into interactive challenges — earn coins, climb leaderboards, and compete with friends while mastering Physics, Chemistry, and Math. Learning has never been this addictive. Join 10M+ students on Vedantu — Start for FREE!",
+                "target_trend": trends[4]["topic"] if len(trends) > 4 else "Gamification in education",
+            },
         ]
 
-        scripts = templates[:3]
+        scripts = templates[:5]
         self._save_scripts(scripts)
         self._update_status(f"✅ Agent 2 complete! Generated {len(scripts)} script variants.")
         return scripts
